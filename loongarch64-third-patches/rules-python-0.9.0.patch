@@ -1,0 +1,36 @@
+diff --git a/python/versions.bzl b/python/versions.bzl
+index 2d05e16..6400c86 100644
+--- a/python/versions.bzl
++++ b/python/versions.bzl
+@@ -20,7 +20,7 @@ MACOS_NAME = "mac os"
+ LINUX_NAME = "linux"
+ WINDOWS_NAME = "windows"
+ 
+-DEFAULT_RELEASE_BASE_URL = "https://github.com/indygreg/python-build-standalone/releases/download"
++DEFAULT_RELEASE_BASE_URL = "https://github.com/Loongson-Cloud-Community/python-build-standalone/releases/download"
+ 
+ # When updating the versions and releases, run the following command to get
+ # the hashes:
+@@ -74,6 +74,7 @@ TOOL_VERSIONS = {
+         "sha256": {
+             "aarch64-apple-darwin": "8dee06c07cc6429df34b6abe091a4684a86f7cec76f5d1ccc1c3ce2bd11168df",
+             "aarch64-unknown-linux-gnu": "2ee1426c181e65133e57dc55c6a685cb1fb5e63ef02d684b8a667d5c031c4203",
++            "loongarch64-unknown-linux-gnu": "984e28b9dabf3e000434ce036ecc32ed195460f7b0850d419627d350e39c0c3f",
+             "x86_64-apple-darwin": "2453ba7f76b3df3310353b48c881d6cff622ba06e30d2b6ae91588b2bc9e481a",
+             "x86_64-pc-windows-msvc": "3024147fd987d9e1b064a3d94932178ff8e0fe98cfea955704213c0762fee8df",
+             "x86_64-unknown-linux-gnu": "ccca12f698b3b810d79c52f007078f520d588232a36bc12ede944ec3ea417816",
+@@ -133,6 +134,14 @@ PLATFORMS = {
+         # repository_ctx.execute(["uname", "-m"]).stdout.strip()
+         arch = "aarch64",
+     ),
++    "loongarch64-unknown-linux-gnu": struct(
++        compatible_with = [
++            "@platforms//os:linux",
++            "@platforms//cpu:loongarch64",
++        ],
++        os_name = LINUX_NAME,
++        arch = "loongarch64",
++    ),
+     "x86_64-apple-darwin": struct(
+         compatible_with = [
+             "@platforms//os:macos",

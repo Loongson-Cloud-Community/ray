@@ -1,0 +1,40 @@
+diff --git a/BUILD b/BUILD
+index 0d13aca..edd4218 100644
+--- a/BUILD
++++ b/BUILD
+@@ -45,6 +45,7 @@ toolchain_type(
+     )
+     for os, cpu in [
+         ("linux", "arm64"),
++        ("linux", "loongarch64"),
+         ("linux", "x86_64"),
+         ("windows", "x86_64"),
+     ]
+diff --git a/perl/deps.bzl b/perl/deps.bzl
+index 7f7ee7c..a513bf3 100644
+--- a/perl/deps.bzl
++++ b/perl/deps.bzl
+@@ -17,6 +17,15 @@ def perl_register_toolchains():
+         ],
+     )
+ 
++    perl_download(
++        name = "perl_linux_loongarch64",
++        strip_prefix = "perl-loongarch64-linux",
++        sha256 = "d52da7f7b03509afb3593f1f42de7fa66a80e232f31d5a2c96e83bdcdd2604f2",
++        urls = [
++	    "https://github.com/Loongson-Cloud-Community/relocatable-perl/releases/download/5.36.0.0/perl-loongarch64-linux.tar.xz",
++        ],
++    )
++
+     perl_download(
+         name = "perl_linux_x86_64",
+         strip_prefix = "perl-x86_64-linux",
+@@ -48,6 +57,7 @@ def perl_register_toolchains():
+     native.register_toolchains(
+         "@rules_perl//:darwin_toolchain",
+         "@rules_perl//:linux_arm64_toolchain",
++        "@rules_perl//:linux_loongarch64_toolchain",
+         "@rules_perl//:linux_x86_64_toolchain",
+         "@rules_perl//:windows_x86_64_toolchain",
+     )
