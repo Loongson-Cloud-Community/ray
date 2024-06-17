@@ -302,6 +302,16 @@ class RayLog {
     return *this;
   }
 
+  RayLog &operator<<(const std::nullptr_t &t) {
+    if (IsEnabled()) {
+      msg_osstream_ << "nullptr";
+    }
+    if (IsFatal()) {
+      expose_fatal_osstream_ << "nullptr";
+    }
+    return *this;
+  }
+
   /// Add log context to the log.
   /// Caller should make sure key is not duplicated
   /// and doesn't conflict with system keys like levelname.
