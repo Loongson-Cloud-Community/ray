@@ -456,6 +456,7 @@ ray_cc_binary(
     name = "raylet",
     srcs = ["src/ray/raylet/main.cc"],
     visibility = ["//java:__subpackages__"],
+    linkopts = ["-lstdc++fs"],
     deps = [
         ":raylet_lib",
         "//src/ray/util",
@@ -522,6 +523,7 @@ ray_cc_binary(
         "src/ray/gcs/gcs_server/gcs_server_main.cc",
     ],
     visibility = ["//java:__subpackages__"],
+    linkopts = ["-lstdc++fs"],
     deps = [
         ":gcs_server_lib",
         ":stats_lib",
