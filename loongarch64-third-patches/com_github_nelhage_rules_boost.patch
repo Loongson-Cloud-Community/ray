@@ -1,0 +1,31 @@
+diff --git a/BUILD.boost b/BUILD.boost
+index 1c8d785..b684836 100644
+--- a/BUILD.boost
++++ b/BUILD.boost
+@@ -36,6 +36,14 @@ config_setting(
+     ],
+ )
+ 
++config_setting(
++    name = "linux_loongarch64",
++    constraint_values = [
++        "@platforms//os:linux",
++        "@platforms//cpu:loongarch64",
++    ],
++)
++
+ config_setting(
+     name = "linux_x86_64",
+     constraint_values = [
+@@ -106,6 +114,11 @@ BOOST_CTX_ASM_SOURCES = selects.with_or({
+         "libs/context/src/asm/make_arm_aapcs_elf_gas.S",
+         "libs/context/src/asm/ontop_arm_aapcs_elf_gas.S",
+     ],
++    ":linux_loongarch64": [
++        "libs/context/src/asm/jump_loongarch64_sysv_elf_gas.S",
++        "libs/context/src/asm/make_loongarch64_sysv_elf_gas.S",
++        "libs/context/src/asm/ontop_loongarch64_sysv_elf_gas.S",
++    ],
+     ":linux_ppc": [
+         "libs/context/src/asm/jump_ppc64_sysv_elf_gas.S",
+         "libs/context/src/asm/make_ppc64_sysv_elf_gas.S",
