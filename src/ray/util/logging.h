@@ -230,6 +230,16 @@ class RayLogBase {
     return *this;
   }
 
+  RayLogBase &operator<<(const std::nullptr_t &t) {
+    if (IsEnabled()) {
+      Stream() << "std::nullptr";
+    }
+    if (IsFatal()) {
+      ExposeStream() << "std::nullptr";
+    }
+    return *this;
+  }
+
  protected:
   virtual std::ostream &Stream() { return std::cerr; };
   virtual std::ostream &ExposeStream() { return std::cerr; };
