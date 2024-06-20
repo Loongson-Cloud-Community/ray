@@ -460,6 +460,7 @@ ray_cc_binary(
     name = "raylet",
     srcs = ["src/ray/raylet/main.cc"],
     visibility = ["//java:__subpackages__"],
+    linkopts = ["-lstdc++fs"],
     deps = [
         ":raylet_lib",
         "//src/ray/util",
@@ -526,6 +527,7 @@ ray_cc_binary(
         "src/ray/gcs/gcs_server/gcs_server_main.cc",
     ],
     visibility = ["//java:__subpackages__"],
+    linkopts = ["-lstdc++fs"],
     deps = [
         ":gcs_server_lib",
         ":stats_lib",
@@ -670,7 +672,7 @@ ray_cc_library(
             "src/ray/raylet/main.cc",
         ],
     ),
-    linkopts = select({
+    linkopts = ["-lstdc++fs"] + select({
         "@bazel_tools//src/conditions:windows": [
         ],
         "//conditions:default": [
@@ -2290,7 +2292,7 @@ pyx_library(
         srcs = PYX_SRCS,
         copts = COPTS + PYX_COPTS,
         # see https://github.com/tensorflow/tensorflow/blob/r2.1/tensorflow/lite/BUILD#L444
-        linkopts = select({
+        linkopts = ["-lstdc++fs"] + select({
             "@bazel_tools//src/conditions:darwin": [
                 "-Wl,-exported_symbols_list,$(location //:src/ray/ray_exported_symbols.lds)",
             ],

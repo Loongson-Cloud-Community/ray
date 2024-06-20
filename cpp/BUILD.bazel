@@ -6,7 +6,7 @@ load("//bazel:ray.bzl", "COPTS")
 cc_binary(
     name = "libray_api.so",
     copts = COPTS,
-    linkopts = select({
+    linkopts = ["-lstdc++fs"] + select({
         "@bazel_tools//src/conditions:darwin": [
             #TODO(larry): Hide the symbols when we make it work on mac.
         ],
