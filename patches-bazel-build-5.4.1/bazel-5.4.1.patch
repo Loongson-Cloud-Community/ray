@@ -1,0 +1,324 @@
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..34e6938
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,7 @@
++bazel-bazel-5.4.1
++bazel-bin
++bazel-out
++bazel-testlogs
++output/
++scripts/bootstrap/BUILD
++
+diff --git a/distdir_deps.bzl b/distdir_deps.bzl
+index 9068f50..27796a3 100755
+--- a/distdir_deps.bzl
++++ b/distdir_deps.bzl
+@@ -21,10 +21,9 @@ DIST_DEPS = {
+     ########################################
+     "platforms": {
+         "archive": "platforms-0.0.5.tar.gz",
+-        "sha256": "379113459b0feaf6bfbb584a91874c065078aa673222846ac765f86661c27407",
++        "sha256": "cc18d9ae5f2190f5288c37d6a4689b79ccb071efa93b56abc2d7904fbe156f2b",
+         "urls": [
+-            "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.5/platforms-0.0.5.tar.gz",
+-            "https://github.com/bazelbuild/platforms/releases/download/0.0.5/platforms-0.0.5.tar.gz",
++		"https://github.com/Loongson-Cloud-Community/platforms/releases/download/0.0.5/platforms-0.0.5.tar.gz",
+         ],
+         "used_in": [
+             "additional_distfiles",
+diff --git a/platforms/cpu/BUILD b/platforms/cpu/BUILD
+index e4c5032..1ac747f 100755
+--- a/platforms/cpu/BUILD
++++ b/platforms/cpu/BUILD
+@@ -129,3 +129,8 @@ constraint_value(
+     name = "riscv64",
+     constraint_setting = ":cpu",
+ )
++
++constraint_value(
++    name = "loongarch64",
++    constraint_setting = ":cpu",
++)
+diff --git a/src/conditions/BUILD b/src/conditions/BUILD
+index d5bfac6..8cf3a8c 100755
+--- a/src/conditions/BUILD
++++ b/src/conditions/BUILD
+@@ -84,6 +84,15 @@ config_setting(
+     visibility = ["//visibility:public"],
+ )
+ 
++config_setting(
++    name = "linux_loongarch64",
++    constraint_values = [
++        "@platforms//os:linux",
++        "@platforms//cpu:loongarch64",
++    ],
++    visibility = ["//visibility:public"],
++)
++
+ config_setting(
+     name = "linux_x86_64",
+     constraint_values = [
+diff --git a/src/conditions/BUILD.tools b/src/conditions/BUILD.tools
+index aafdb4f..6641d43 100755
+--- a/src/conditions/BUILD.tools
++++ b/src/conditions/BUILD.tools
+@@ -69,6 +69,15 @@ config_setting(
+     visibility = ["//visibility:public"],
+ )
+ 
++config_setting(
++    name = "linux_loongarch64",
++    constraint_values = [
++        "@platforms//os:linux",
++        "@platforms//cpu:loongarch64",
++    ],
++    visibility = ["//visibility:public"],
++)
++
+ config_setting(
+     name = "linux_x86_64",
+     constraint_values = [
+diff --git a/src/main/java/com/google/devtools/build/lib/analysis/config/AutoCpuConverter.java b/src/main/java/com/google/devtools/build/lib/analysis/config/AutoCpuConverter.java
+index 07b1352..529094e 100755
+--- a/src/main/java/com/google/devtools/build/lib/analysis/config/AutoCpuConverter.java
++++ b/src/main/java/com/google/devtools/build/lib/analysis/config/AutoCpuConverter.java
+@@ -74,6 +74,8 @@ public class AutoCpuConverter implements Converter<String> {
+               return "mips64";
+             case RISCV64:
+               return "riscv64";
++            case LOONGARCH64:
++              return "loongarch64";
+             default:
+               return "unknown";
+           }
+@@ -118,6 +120,8 @@ public class AutoCpuConverter implements Converter<String> {
+         return Pair.of(CPU.MIPS64, OS.LINUX);
+       case "riscv64":
+         return Pair.of(CPU.RISCV64, OS.LINUX);
++      case "loongarch64":
++        return Pair.of(CPU.LOONGARCH64, OS.LINUX);
+       default:
+         // fall through
+     }
+diff --git a/src/main/java/com/google/devtools/build/lib/bazel/repository/LocalConfigPlatformFunction.java b/src/main/java/com/google/devtools/build/lib/bazel/repository/LocalConfigPlatformFunction.java
+index c67b109..a20f4fd 100755
+--- a/src/main/java/com/google/devtools/build/lib/bazel/repository/LocalConfigPlatformFunction.java
++++ b/src/main/java/com/google/devtools/build/lib/bazel/repository/LocalConfigPlatformFunction.java
+@@ -120,6 +120,8 @@ public class LocalConfigPlatformFunction extends RepositoryFunction {
+         return "@platforms//cpu:mips64";
+       case RISCV64:
+         return "@platforms//cpu:riscv64";
++      case LOONGARCH64:
++        return "@platforms//cpu:loongarch64";
+       default:
+         // Unknown, so skip it.
+         return null;
+diff --git a/src/main/java/com/google/devtools/build/lib/util/CPU.java b/src/main/java/com/google/devtools/build/lib/util/CPU.java
+index 88ae4a3..04f3e7d 100755
+--- a/src/main/java/com/google/devtools/build/lib/util/CPU.java
++++ b/src/main/java/com/google/devtools/build/lib/util/CPU.java
+@@ -29,6 +29,7 @@ public enum CPU {
+   S390X("s390x", ImmutableSet.of("s390x", "s390")),
+   MIPS64("mips64", ImmutableSet.of("mips64el", "mips64")),
+   RISCV64("riscv64", ImmutableSet.of("riscv64")),
++  LOONGARCH64("loongarch64", ImmutableSet.of("loongarch64")),
+   UNKNOWN("unknown", ImmutableSet.<String>of());
+ 
+   private final String canonicalName;
+diff --git a/tools/cpp/BUILD.tools b/tools/cpp/BUILD.tools
+index 3a85d5f..8c596dd 100755
+--- a/tools/cpp/BUILD.tools
++++ b/tools/cpp/BUILD.tools
+@@ -108,6 +108,7 @@ cc_toolchain_suite(
+         "ppc|compiler": ":cc-compiler-ppc",
+         "mips64|compiler": ":cc-compiler-mips64",
+         "riscv64|compiler": ":cc-compiler-riscv64",
++        "loongarch64|compiler": ":cc-compiler-loongarch64",
+         "k8": ":cc-compiler-local",
+         "piii": ":cc-compiler-local",
+         "arm": ":cc-compiler-local",
+@@ -117,6 +118,7 @@ cc_toolchain_suite(
+         "ppc64": ":cc-compiler-local",
+         "mips64": ":cc-compiler-local",
+         "riscv64": ":cc-compiler-local",
++        "loongarch64": ":cc-compiler-local",
+         "darwin": ":cc-compiler-darwin",
+         "freebsd": ":cc-compiler-freebsd",
+         "armeabi-v7a": ":cc-compiler-armeabi-v7a",
+@@ -268,6 +270,33 @@ toolchain(
+     toolchain_type = ":toolchain_type",
+ )
+ 
++cc_toolchain(
++    name = "cc-compiler-loongarch64",
++    all_files = ":empty",
++    ar_files = ":empty",
++    as_files = ":empty",
++    compiler_files = ":empty",
++    dwp_files = ":empty",
++    linker_files = ":empty",
++    objcopy_files = ":empty",
++    strip_files = ":empty",
++    supports_param_files = 1,
++    toolchain_config = ":local_linux",
++    toolchain_identifier = "local_linux",
++)
++
++toolchain(
++    name = "cc-toolchain-loongarch64",
++    exec_compatible_with = [
++        "@platforms//cpu:loongarch64",
++    ],
++    target_compatible_with = [
++        "@platforms//cpu:loongarch64",
++    ],
++    toolchain = ":cc-compiler-loongarch64",
++    toolchain_type = ":toolchain_type",
++)
++
+ cc_toolchain(
+     name = "cc-compiler-armeabi-v7a",
+     all_files = ":empty",
+diff --git a/tools/cpp/lib_cc_configure.bzl b/tools/cpp/lib_cc_configure.bzl
+index f8689fb..ec0e0bb 100755
+--- a/tools/cpp/lib_cc_configure.bzl
++++ b/tools/cpp/lib_cc_configure.bzl
+@@ -206,6 +206,8 @@ def get_cpu_value(repository_ctx):
+         return "arm"
+     if arch in ["aarch64"]:
+         return "aarch64"
++    if arch in ["loongarch64"]:
++        return "loongarch64"
+     return "k8" if arch in ["amd64", "x86_64", "x64"] else "piii"
+ 
+ def is_cc_configure_debug(repository_ctx):
+diff --git a/tools/jdk/BUILD.tools b/tools/jdk/BUILD.tools
+index ad3e61e..55bd088 100755
+--- a/tools/jdk/BUILD.tools
++++ b/tools/jdk/BUILD.tools
+@@ -71,6 +71,7 @@ java_runtime_files(
+     srcs = ["include/win32/jni_md.h"],
+ )
+ 
++# 这里会执行“include/freebsd/jni_md.h”的拷贝
+ java_runtime_files(
+     name = "jni_md_header-freebsd",
+     srcs = ["include/freebsd/jni_md.h"],
+@@ -95,12 +96,13 @@ cc_library(
+         "//src/conditions:linux_s390x": [":jni_md_header-linux"],
+         "//src/conditions:linux_mips64": [":jni_md_header-linux"],
+         "//src/conditions:linux_riscv64": [":jni_md_header-linux"],
++        "//src/conditions:linux_loongarch64": [":jni_md_header-linux"],
+         "//src/conditions:linux_x86_64": [":jni_md_header-linux"],
+         "//src/conditions:darwin": [":jni_md_header-darwin"],
+         "//src/conditions:freebsd": [":jni_md_header-freebsd"],
+         "//src/conditions:openbsd": [":jni_md_header-openbsd"],
+         "//src/conditions:windows": [":jni_md_header-windows"],
+-        "//conditions:default": [],
++        "//conditions:default": [":jni_md_header-linux"],
+     }),
+     includes = ["include"] + select({
+         "//src/conditions:linux_aarch64": ["include/linux"],
+@@ -108,12 +110,13 @@ cc_library(
+         "//src/conditions:linux_s390x": ["include/linux"],
+         "//src/conditions:linux_mips64": [":include/linux"],
+         "//src/conditions:linux_riscv64": [":include/linux"],
++        "//src/conditions:linux_loongarch64": ["include/linux"],
+         "//src/conditions:linux_x86_64": ["include/linux"],
+         "//src/conditions:darwin": ["include/darwin"],
+         "//src/conditions:freebsd": ["include/freebsd"],
+         "//src/conditions:openbsd": ["include/openbsd"],
+         "//src/conditions:windows": ["include/win32"],
+-        "//conditions:default": [],
++        "//conditions:default": [":include/linux"],
+     }),
+ )
+ 
+diff --git a/tools/jdk/default_java_toolchain.bzl b/tools/jdk/default_java_toolchain.bzl
+index af3a646..d8b88d2 100755
+--- a/tools/jdk/default_java_toolchain.bzl
++++ b/tools/jdk/default_java_toolchain.bzl
+@@ -186,6 +186,7 @@ def default_java_toolchain(name, configuration = DEFAULT_TOOLCHAIN_CONFIGURATION
+ 
+ def java_runtime_files(name, srcs):
+     """Copies the given sources out of the current Java runtime."""
++    print("java_runtime_files: name={}, srcs={}".format(name, srcs))
+ 
+     native.filegroup(
+         name = name,
+@@ -196,7 +197,7 @@ def java_runtime_files(name, srcs):
+             name = "gen_%s" % src,
+             srcs = ["@bazel_tools//tools/jdk:current_java_runtime"],
+             toolchains = ["@bazel_tools//tools/jdk:current_java_runtime"],
+-            cmd = "cp $(JAVABASE)/%s $@" % src,
++	    cmd = "cp $(JAVABASE)/%s $@" % src,
+             outs = [src],
+         )
+ 
+diff --git a/tools/platforms/BUILD b/tools/platforms/BUILD
+index 18ff33e..796ac33 100755
+--- a/tools/platforms/BUILD
++++ b/tools/platforms/BUILD
+@@ -63,6 +63,11 @@ alias(
+     actual = "@platforms//cpu:riscv64",
+ )
+ 
++alias(
++    name = "loongarch64",
++    actual = "@platforms//cpu:loongarch64",
++)
++
+ alias(
+     name = "os",
+     actual = "@platforms//os:os",
+@@ -121,6 +126,7 @@ platform(
+         "@platforms//cpu:s390x",
+         "@platforms//cpu:mips64",
+         "@platforms//cpu:riscv64",
++        "@platforms//cpu:loongarch64",
+     ],
+     host_platform = True,
+     os_constraints = [
+@@ -145,6 +151,7 @@ platform(
+         "@platforms//cpu:s390x",
+         "@platforms//cpu:mips64",
+         "@platforms//cpu:riscv64",
++        "@platforms//cpu:loongarch64",
+     ],
+     os_constraints = [
+         "@platforms//os:osx",
+diff --git a/tools/platforms/BUILD.tools b/tools/platforms/BUILD.tools
+index 27a11ae..e9f115f 100755
+--- a/tools/platforms/BUILD.tools
++++ b/tools/platforms/BUILD.tools
+@@ -51,6 +51,11 @@ alias(
+     actual = "@platforms//cpu:riscv64",
+ )
+ 
++alias(
++    name = "loongarch64",
++    actual = "@platforms//cpu:loongarch64",
++)
++
+ alias(
+     name = "os",
+     actual = "@platforms//os:os",
+@@ -109,6 +114,7 @@ platform(
+         "@platforms//cpu:s390x",
+         "@platforms//cpu:mips64",
+         "@platforms//cpu:riscv64",
++        "@platforms//cpu:loongarch64",
+     ],
+     host_platform = True,
+     os_constraints = [
+@@ -133,6 +139,7 @@ platform(
+         "@platforms//cpu:s390x",
+         "@platforms//cpu:mips64",
+         "@platforms//cpu:riscv64",
++        "@platforms//cpu:loongarch64",
+     ],
+     os_constraints = [
+         "@platforms//os:osx",
